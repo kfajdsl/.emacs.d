@@ -22,17 +22,28 @@
   ;; For evil-collection to work
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
-  :config
   (evil-mode 1))
+
+(use-package evil-collection
+  :after evil
+  :init
+  (evil-collection-init))
+
 (use-package which-key
   :config
   (which-key-mode 1))
+
 (use-package general
+  :after evil-collection
   :config
   (general-create-definer my-global-definer
     :keymaps 'override
-    :states  'motion
-    :prefix  "SPC")
+    :states  '(motion normal insert emacs)
+    :prefix  "SPC"
+    :non-normal-prefix "C-SPC")
+  ;; https://github.com/noctuid/general.el#how-do-i-prevent-key-sequence-starts-with-non-prefix-key-errors
+  (my-global-definer "" nil)
+
 
   ;; stolen from https://gist.github.com/progfolio/1c96a67fcec7584b31507ef664de36cc
   (defmacro my-general-global-menu! (name infix-key &rest body)
@@ -72,6 +83,8 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
         kept-old-versions 2
         version-control t)
 
+
+
   (general-define-key
     "M-h" '(evil-window-left :which-key "Switch window left")
     "M-j" '(evil-window-down :which-key "Switch window down")
@@ -87,11 +100,11 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   (my-general-global-menu! "eval" "e"
     "r" 'eval-region
     "b" 'eval-buffer
-    "d" 'eval-defun))
+    "d" 'eval-defun)
 
-(use-package evil-collection
-  :config
-  (evil-collection-init))
+  (my-general-global-menu! "buffer" "b"
+    "i" 'ibuffer))
+
 
 
 (use-package gotham-theme
@@ -127,23 +140,20 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
     "d" 'magit-dispatch
     "f" 'magit-file-dispatch))
 
-;(use-package perspective 
-;  :init
-;  ;(add-hook 'window-setup-hook '(lambda () (persp-mode 1)))
-;  (persp-mode)
-;  (my-general-global-menu! "persp" "TAB"
-;    "s" 'persp-switch
-;    "`" 'persp-switch-by-number
-;    "k" 'persp-remove-buffer
-;    "c" 'persp-kill
-;    "r" 'persp-rename
-;    "a" 'persp-add-buffer
-;    "A" 'persp-set-buffer
-;    "b" 'persp-switch-to-buffer))
-;  )
+(use-package perspective 
+  :init
+  (setq persp-suppress-no-prefix-key-warning t)
+  (persp-mode)
+  (my-general-global-menu! "persp" "TAB"
+    "s" 'persp-switch
+    "`" 'persp-switch-by-number
+    "k" 'persp-remove-buffer
+    "c" 'persp-kill
+    "r" 'persp-rename
+    "a" 'persp-add-buffer
+    "A" 'persp-set-buffer
+    "b" 'persp-switch-to-buffer))
 
-    
-  
 ;;; Language Modes
 
 (use-package flex

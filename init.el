@@ -77,6 +77,8 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
 
   (pixel-scroll-precision-mode 1)
 
+  (setq mouse-autoselect-window t)
+
   (setq backup-directory-alist `(("." . "~/.saves")))
   (setq delete-old-versions t
         kept-new-versions 6
@@ -103,7 +105,27 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
     "d" 'eval-defun)
 
   (my-general-global-menu! "buffer" "b"
-    "i" 'ibuffer))
+    "i" 'ibuffer
+    "k" 'kill-this-buffer
+    "K" 'kill-buffer-ask)
+
+  (my-general-global-menu! "project" "p")
+
+  (defun find-first-non-ascii-char ()
+    "Find the first non-ascii character from point onwards."
+    (interactive)
+    (let (point)
+      (save-excursion
+        (setq point
+              (catch 'non-ascii
+                (while (not (eobp))
+                  (or (eq (char-charset (following-char))
+                          'ascii)
+                      (throw 'non-ascii (point)))
+                  (forward-char 1)))))
+      (if point
+          (goto-char point)
+        (message "No non-ascii characters.")))))
 
 
 
@@ -113,12 +135,27 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   (load-theme 'gotham t))
 
 (use-package vertico
-  :config
+  :init
   (vertico-mode))
+
+(use-package orderless
+  :config
+  (setq completion-styles '(orderless basic)
+      completion-category-overrides '((file (styles basic partial-completion)))))
+
+(use-package marginalia
+  :init
+  (marginalia-mode))
+
+(use-package consult)
+(use-package consult-project-extra
+  :config
+  (my-general-global-project
+    "s" 'consult-project-extra-find))
 
 (use-package corfu
   :straight (corfu :files ("corfu.el" "extensions/corfu-popupinfo.el"))
-  :config
+  :init
   (setq corfu-auto t)
   (global-corfu-mode)
   (corfu-popupinfo-mode 1))
@@ -153,6 +190,22 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
     "a" 'persp-add-buffer
     "A" 'persp-set-buffer
     "b" 'persp-switch-to-buffer))
+
+(use-package xterm-color
+  :config
+  (setq comint-output-filter-functions
+        (remove 'ansi-color-process-output comint-output-filter-functions))
+  
+  (add-hook 'shell-mode-hook
+            (lambda ()
+              ;; Disable font-locking in this buffer to improve performance
+              (font-lock-mode -1)
+              ;; Prevent font-locking from being re-enabled in this buffer
+              (make-local-variable 'font-lock-function)
+              (setq font-lock-function (lambda (_) nil))
+              (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter nil t))))
+
+(use-package python-black)
 
 ;;; Language Modes
 

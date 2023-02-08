@@ -16,12 +16,15 @@
 (straight-use-package 'use-package)
 (setq straight-use-package-by-default t)
 
+(use-package bug-hunter)
+
 (use-package evil
   :init
   (setq evil-want-C-u-scroll t)
   ;; For evil-collection to work
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
+  (setq evil-undo-system 'undo-redo)
   (evil-mode 1))
 
 (use-package evil-collection
@@ -71,9 +74,17 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
                               (vertical-scroll-bars . nil)
                               (horizontal-scroll-bars . nil)))
 
-  (setq-default indent-tabs-mode nil)
   (setq-default electric-indent-inhibit t)
   (setq backward-delete-char-untabify-method 'hungry)
+
+  (setq-default indent-tabs-mode nil)
+  (setq-default tab-width 4)
+  (setq indent-line-function 'insert-tab)
+  (setq-default c-basic-offset 4)
+
+  (add-hook 'c-mode-common-hook
+	    (lambda()
+	      (c-set-offset 'inextern-lang 0)))
 
   (pixel-scroll-precision-mode 1)
 
@@ -85,6 +96,11 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
         kept-old-versions 2
         version-control t)
 
+  (setq xref-search-program 'ripgrep)
+
+  (load-theme 'wombat)
+  (setq dired-dwim-target t)
+  (setq mode-line-position (list "(%l,%c)"))
 
 
   (general-define-key
@@ -97,7 +113,8 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
     ";" 'evil-ex)
 
   (my-global-definer
-    "." '(find-file :which-key "Find file"))
+    "." '(find-file :which-key "Find file")
+    "/" '(project-search :which-key "Project Search"))
 
   (my-general-global-menu! "eval" "e"
     "r" 'eval-region
@@ -107,9 +124,16 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   (my-general-global-menu! "buffer" "b"
     "i" 'ibuffer
     "k" 'kill-this-buffer
-    "K" 'kill-buffer-ask)
+    "K" 'kill-buffer-ask
+    "r" 'rename-buffer)
 
   (my-general-global-menu! "project" "p")
+
+  (my-general-global-menu! "code" "c"
+    "a" 'eglot-code-actions
+    "r" 'eglot-rename)
+  (my-general-global-menu! "find" "f"
+    "r" 'xref-find-references)
 
   (defun find-first-non-ascii-char ()
     "Find the first non-ascii character from point onwards."
@@ -132,7 +156,8 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
 (use-package gotham-theme
   :straight (gotham-theme :type git :repo "https://depp.brause.cc/gotham-theme.git")
   :config
-  (load-theme 'gotham t))
+  ;(load-theme 'gotham t))
+  )
 
 (use-package vertico
   :init
@@ -147,7 +172,10 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   :init
   (marginalia-mode))
 
-(use-package consult)
+(use-package consult
+  :config
+  (my-general-global-buffer
+    "s" 'consult-buffer))
 (use-package consult-project-extra
   :config
   (my-general-global-project
@@ -164,9 +192,7 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   :config
   (setq treesit-extra-load-path '("~/src/tree-sitter-module/dist")))
 
-(use-package eglot
-  ;; already included in emacs 29+, don't get the ELPA version
-  :straight nil)
+(use-package eldoc-box)
 
 (use-package magit
   :init
@@ -175,7 +201,8 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   (my-general-global-menu! "git" "g"
     "g" 'magit-status
     "d" 'magit-dispatch
-    "f" 'magit-file-dispatch))
+    "f" 'magit-file-dispatch
+    "c" 'magit-clone))
 
 (use-package perspective 
   :init
@@ -207,6 +234,16 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
 
 (use-package python-black)
 
+(use-package neotree
+  :config
+  (defun my-neotree-toggle ()
+    "Switch neotree root to project root and toggle"
+    (interactive)
+    (neo-global--open-dir (project-root (buffer-file-name))
+    (neotree-toggle))))
+
+(use-package vterm)
+
 ;;; Language Modes
 
 (use-package flex
@@ -215,6 +252,22 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   (add-to-list 'auto-mode-alist '("\\.l$" . flex-mode))
   (autoload 'flex-mode "flex"))
 
+(use-package yaml-mode
+  :config
+  (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
+  (add-hook 'yaml-mode-hook
+            '(lambda ()
+               (define-key yaml-mode-map "\C-m" 'newline-and-indent))))
+
+(use-package markdown-mode)
+
+(use-package dockerfile-mode)
+
+(use-package cmake-mode
+  :config
+  (add-to-list 'auto-mode-alist '("\\CMakeLists\\.txt\\'" . cmake-mode)))
+
+(use-package groovy-mode)
 
 
 (custom-set-variables
@@ -222,11 +275,15 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(c-basic-offset 4))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(corfu-popupinfo ((t (:inherit corfu-default :height 1.0))))
+ '(eldoc-box-border ((t (:background "#245361"))))
+ '(fixed ((t nil)))
+ '(fixed-pitch ((t (:inherit fixed))))
+ '(fixed-pitch-serif ((t (:family "Iosevka Slab"))))
  '(persp-selected-face ((t (:weight bold)))))

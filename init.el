@@ -1,4 +1,4 @@
-;; configure flags: --with-imagemagick --with-json --with-tree-sitter --with-pgtk --with-xwidgets --with-native-compilation=aot
+;; configure flags: --with-imagemagick --with-json --with-tree-sitter --with-pgtk --with-xwidgets --with-native-compilation=aot --without-pop
 
 (defvar bootstrap-version)
 (let ((bootstrap-file
@@ -25,6 +25,7 @@
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
   (setq evil-undo-system 'undo-redo)
+  (setq evil-ex-substitute-global t)
   (evil-mode 1))
 
 (use-package evil-collection
@@ -46,22 +47,22 @@
     :non-normal-prefix "C-SPC")
   ;; https://github.com/noctuid/general.el#how-do-i-prevent-key-sequence-starts-with-non-prefix-key-errors
   (my-global-definer "" nil)
-
-
+  
+  
   ;; stolen from https://gist.github.com/progfolio/1c96a67fcec7584b31507ef664de36cc
   (defmacro my-general-global-menu! (name infix-key &rest body)
-  "Create a definer named my-general-global-NAME wrapping global-definer.
+    "Create a definer named my-general-global-NAME wrapping global-definer.
 Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KEY."
-  (declare (indent 2))
-  `(progn
-     (general-create-definer ,(intern (concat "my-general-global-" name))
-       :wrapping my-global-definer
-       :prefix-map (quote ,(intern (concat "my-general-global-" name "-map")))
-       :infix ,infix-key
-       :wk-full-keys nil
-       "" '(:ignore t :which-key ,name))
-     (,(intern (concat "my-general-global-" name))
-      ,@body))))
+    (declare (indent 2))
+    `(progn
+       (general-create-definer ,(intern (concat "my-general-global-" name))
+         :wrapping my-global-definer
+         :prefix-map (quote ,(intern (concat "my-general-global-" name "-map")))
+         :infix ,infix-key
+         :wk-full-keys nil
+         "" '(:ignore t :which-key ,name))
+       (,(intern (concat "my-general-global-" name))
+        ,@body))))
 
 (use-package emacs
   :config
@@ -70,71 +71,85 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   (tool-bar-mode -1) 
   (setq ring-bell-function 'ignore)
   (setq default-frame-alist '((undecorated . t)
-			      (font . "Iosevka-12")
+			                  (font . "Iosevka-12")
                               (vertical-scroll-bars . nil)
                               (horizontal-scroll-bars . nil)))
-
+  
   (setq-default electric-indent-inhibit t)
   (setq backward-delete-char-untabify-method 'hungry)
-
+  
   (setq-default indent-tabs-mode nil)
   (setq-default tab-width 4)
   (setq indent-line-function 'insert-tab)
   (setq-default c-basic-offset 4)
-
+  
   (add-hook 'c-mode-common-hook
-	    (lambda()
-	      (c-set-offset 'inextern-lang 0)))
-
+            (lambda()
+              (c-set-offset 'inextern-lang 0)))
+  
   (pixel-scroll-precision-mode 1)
-
+  
   (setq mouse-autoselect-window t)
-
+  
   (setq backup-directory-alist `(("." . "~/.saves")))
   (setq delete-old-versions t
         kept-new-versions 6
         kept-old-versions 2
         version-control t)
-
+  
   (setq xref-search-program 'ripgrep)
-
+  
   (load-theme 'wombat)
   (setq dired-dwim-target t)
   (setq mode-line-position (list "(%l,%c)"))
+  
+  
+  (general-define-key
+   :keymaps '(override vterm-mode-map)
+   "M-h" '(evil-window-left :which-key "Switch window left")
+   "M-j" '(evil-window-down :which-key "Switch window down")
+   "M-k" '(evil-window-up :which-key "Switch window up")
+   "M-l" '(evil-window-right :which-key "Switch window right")
+   "M-u" 'universal-argument)
+
+  ; eshell is dumb
+  (add-hook 'eshell-mode-hook (lambda () (general-define-key
+                                          :keymaps 'eshell-mode-map
+                                          "M-h" '(evil-window-left :which-key "Switch window left")
+                                          "M-j" '(evil-window-down :which-key "Switch window down")
+                                          "M-k" '(evil-window-up :which-key "Switch window up")
+                                          "M-l" '(evil-window-right :which-key "Switch window right"))))
 
 
   (general-define-key
-    "M-h" '(evil-window-left :which-key "Switch window left")
-    "M-j" '(evil-window-down :which-key "Switch window down")
-    "M-k" '(evil-window-up :which-key "Switch window up")
-    "M-l" '(evil-window-right :which-key "Switch window right"))
-  (general-define-key
-    :states '(normal motion)
-    ";" 'evil-ex)
-
+   :keymaps '(override vterm-mode-map)
+   :states '(normal motion)
+   ";" 'evil-ex)
+  
   (my-global-definer
     "." '(find-file :which-key "Find file")
     "/" '(project-search :which-key "Project Search"))
-
+  
   (my-general-global-menu! "eval" "e"
     "r" 'eval-region
     "b" 'eval-buffer
     "d" 'eval-defun)
-
+  
   (my-general-global-menu! "buffer" "b"
     "i" 'ibuffer
     "k" 'kill-this-buffer
     "K" 'kill-buffer-ask
     "r" 'rename-buffer)
-
+  
   (my-general-global-menu! "project" "p")
-
+  
   (my-general-global-menu! "code" "c"
     "a" 'eglot-code-actions
-    "r" 'eglot-rename)
+    "r" 'eglot-rename
+    "c" 'recompile)
   (my-general-global-menu! "find" "f"
     "r" 'xref-find-references)
-
+  
   (defun find-first-non-ascii-char ()
     "Find the first non-ascii character from point onwards."
     (interactive)
@@ -149,14 +164,36 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
                   (forward-char 1)))))
       (if point
           (goto-char point)
-        (message "No non-ascii characters.")))))
+        (message "No non-ascii characters."))))
 
+  (add-to-list 'auto-mode-alist '("\\.tpp\\'" . c++-ts-mode))
 
+  (setq compilation-scroll-output 'first-error))
+
+(use-package treesit-auto
+  :straight (treesit-auto :type git :host github :repo "renzmann/treesit-auto")
+  :init
+  (setq treesit-auto-install 'prompt)
+  :config
+  (global-treesit-auto-mode)
+  (setq java-ts-mode-hook java-mode-hook)
+  (setq c-ts-mode-hook c-mode-hook)
+  (setq c++-ts-mode-hook c-mode-hook))
+
+(use-package evil-snipe
+  :init
+  (setq evil-snipe-scope 'visible)
+  (setq evil-snipe-repeat-scope 'whole-visible)
+  :config
+  (delete 'dired-mode evil-snipe-disabled-modes)
+
+  (evil-snipe-mode 1)
+  (evil-snipe-override-mode 1))
 
 (use-package gotham-theme
   :straight (gotham-theme :type git :repo "https://depp.brause.cc/gotham-theme.git")
   :config
-  ;(load-theme 'gotham t))
+                                        ;(load-theme 'gotham t))
   )
 
 (use-package vertico
@@ -166,7 +203,7 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
 (use-package orderless
   :config
   (setq completion-styles '(orderless basic)
-      completion-category-overrides '((file (styles basic partial-completion)))))
+        completion-category-overrides '((file (styles basic partial-completion)))))
 
 (use-package marginalia
   :init
@@ -176,6 +213,7 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   :config
   (my-general-global-buffer
     "s" 'consult-buffer))
+
 (use-package consult-project-extra
   :config
   (my-general-global-project
@@ -189,8 +227,9 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   (corfu-popupinfo-mode 1))
 
 (use-package treesit
-  :config
-  (setq treesit-extra-load-path '("~/src/tree-sitter-module/dist")))
+  :commands (treesit-install-language-grammar my/treesit-install-all-languages)
+  :init
+)
 
 (use-package eldoc-box)
 
@@ -202,7 +241,8 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
     "g" 'magit-status
     "d" 'magit-dispatch
     "f" 'magit-file-dispatch
-    "c" 'magit-clone))
+    "c" 'magit-clone
+    "i" 'magit-init))
 
 (use-package perspective 
   :init
@@ -230,7 +270,15 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
               ;; Prevent font-locking from being re-enabled in this buffer
               (make-local-variable 'font-lock-function)
               (setq font-lock-function (lambda (_) nil))
-              (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter nil t))))
+              (add-hook 'comint-preoutput-filter-functions 'xterm-color-filter nil t)))
+
+  ;; color for *compilation* buffers
+  (setq compilation-environment '("TERM=xterm-256color"))
+  (defun my/advice-compilation-filter (f proc string)
+    (funcall f proc (if (string-prefix-p "*compilation" (buffer-name (process-buffer proc)))
+                        (xterm-color-filter string) string)))
+  (advice-add 'compilation-filter :around #'my/advice-compilation-filter))
+
 
 (use-package python-black)
 
@@ -240,11 +288,32 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
     "Switch neotree root to project root and toggle"
     (interactive)
     (neo-global--open-dir (project-root (buffer-file-name))
-    (neotree-toggle))))
+                          (neotree-toggle))))
 
 (use-package vterm)
 
-;;; Language Modes
+(use-package editorconfig
+  :config
+  (editorconfig-mode 1))
+
+(use-package flymake-diagnostic-at-point
+  :after flymake
+  :config
+  (add-hook 'flymake-mode-hook #'flymake-diagnostic-at-point-mode))
+
+(use-package minimap)
+
+(use-package bash-completion
+  :config
+  (autoload 'bash-completion-dynamic-complete
+    "bash-completion"
+    "BASH completion hook")
+  (add-hook 'shell-dynamic-complete-functions
+            'bash-completion-dynamic-complete))
+
+(use-package rotate)
+
+;;; LANGUAGE MODES
 
 (use-package flex
   :straight (flex :type git :host github :repo "manateelazycat/flex")
@@ -275,7 +344,9 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(c-basic-offset 4))
+ '(c-basic-offset 4 t)
+ '(minimap-dedicated-window nil)
+ '(minimap-window-location 'right))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

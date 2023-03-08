@@ -313,6 +313,10 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
 
 (use-package rotate)
 
+(use-package pyvenv
+  :config
+  (pyvenv-mode 1))
+
 ;;; LANGUAGE MODES
 
 (use-package flex

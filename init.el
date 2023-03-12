@@ -317,6 +317,8 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   :config
   (pyvenv-mode 1))
 
+(use-package leetcode)
+
 ;;; LANGUAGE MODES
 
 (use-package flex

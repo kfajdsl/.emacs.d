@@ -303,13 +303,13 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
 
 (use-package minimap)
 
-(use-package bash-completion
-  :config
-  (autoload 'bash-completion-dynamic-complete
-    "bash-completion"
-    "BASH completion hook")
-  (add-hook 'shell-dynamic-complete-functions
-            'bash-completion-dynamic-complete))
+;(use-package bash-completion
+;  :config
+;  (autoload 'bash-completion-dynamic-complete
+;    "bash-completion"
+;    "BASH completion hook")
+;  (add-hook 'shell-dynamic-complete-functions
+;            'bash-completion-dynamic-complete))
 
 (use-package rotate)
 
@@ -318,6 +318,19 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   (pyvenv-mode 1))
 
 (use-package leetcode)
+
+(use-package poetry)
+
+(use-package web-mode
+  :config
+  (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+  (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode)))
 
 ;;; LANGUAGE MODES
 

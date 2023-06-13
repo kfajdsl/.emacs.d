@@ -70,8 +70,11 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   (scroll-bar-mode -1) 
   (tool-bar-mode -1) 
   (setq ring-bell-function 'ignore)
-  (setq default-frame-alist '((undecorated . t)
-			                  (font . "Iosevka-12")
+  ;(setq default-frame-alist '((undecorated . t)
+  ;  		                  (font . "Iosevka-12")
+  ;                            (vertical-scroll-bars . nil)
+  ;                            (horizontal-scroll-bars . nil)))
+  (setq default-frame-alist '((font . "Iosevka-12")
                               (vertical-scroll-bars . nil)
                               (horizontal-scroll-bars . nil)))
   
@@ -181,7 +184,38 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   (defun change-font-size (new-size)
     "Change the font size to the given value"
     (interactive "nNew font size: ")
-    (set-face-attribute 'default nil :height (* 10 new-size))))
+    (set-face-attribute 'default nil :height (* 10 new-size)))
+
+  (setq treesit-language-source-alist
+        '((bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
+          (c . ("https://github.com/tree-sitter/tree-sitter-c"))
+          (cpp . ("https://github.com/tree-sitter/tree-sitter-cpp"))
+          (css . ("https://github.com/tree-sitter/tree-sitter-css"))
+          (go . ("https://github.com/tree-sitter/tree-sitter-go"))
+          (html . ("https://github.com/tree-sitter/tree-sitter-html"))
+          (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
+          (json . ("https://github.com/tree-sitter/tree-sitter-json"))
+          (lua . ("https://github.com/Azganoth/tree-sitter-lua"))
+          (make . ("https://github.com/alemuller/tree-sitter-make"))
+          (ocaml . ("https://github.com/tree-sitter/tree-sitter-ocaml" "ocaml/src" "ocaml"))
+          (python . ("https://github.com/tree-sitter/tree-sitter-python"))
+          (php . ("https://github.com/tree-sitter/tree-sitter-php"))
+          (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "typescript/src" "typescript"))
+          (ruby . ("https://github.com/tree-sitter/tree-sitter-ruby"))
+          (rust . ("https://github.com/tree-sitter/tree-sitter-rust"))
+          (sql . ("https://github.com/m-novikov/tree-sitter-sql"))
+          (toml . ("https://github.com/tree-sitter/tree-sitter-toml"))
+          (zig . ("https://github.com/GrayJack/tree-sitter-zig"))
+          (cmake . ("https://github.com/uyha/tree-sitter-cmake.git"))))
+
+  (defun my/treesit-install-all-languages ()
+    "Install all languages specified by `treesit-language-source-alist'."
+    (interactive)
+    (let ((languages (mapcar 'car treesit-language-source-alist)))
+      (dolist (lang languages)
+        (treesit-install-language-grammar lang)
+        (message "`%s' parser was installed." lang)
+        (sit-for 0.75)))))
 
 (use-package treesit-auto
   :straight (treesit-auto :type git :host github :repo "renzmann/treesit-auto")
@@ -241,11 +275,6 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   (setq completion-styles '(substring))
   (global-corfu-mode)
   (corfu-popupinfo-mode 1))
-
-(use-package treesit
-  :commands (treesit-install-language-grammar my/treesit-install-all-languages)
-  :init
-)
 
 (use-package eldoc-box)
 
@@ -308,7 +337,7 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
     (neo-global--open-dir (project-root (buffer-file-name))
                           (neotree-toggle))))
 
-(use-package vterm)
+;(use-package vterm)
 
 (use-package editorconfig
   :config
@@ -390,6 +419,9 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
 
 (use-package wgsl-mode)
 
+(use-package csv-mode)
+
+(use-package nix-mode)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.

@@ -99,9 +99,11 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   
   (setq xref-search-program 'ripgrep)
   
-  (load-theme 'wombat)
+  (load-theme 'wheatgrass)
   (setq dired-dwim-target t)
   (setq mode-line-position (list "(%l,%c)"))
+
+  (electric-pair-mode 1)
   
   
   (general-define-key
@@ -139,7 +141,8 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
     "i" 'ibuffer
     "k" 'kill-this-buffer
     "K" 'kill-buffer-ask
-    "r" 'rename-buffer)
+    "r" 'rename-buffer
+    "R" 'revert-buffer)
   
   (my-general-global-menu! "project" "p")
   
@@ -168,7 +171,17 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
 
   (add-to-list 'auto-mode-alist '("\\.tpp\\'" . c++-ts-mode))
 
-  (setq compilation-scroll-output 'first-error))
+  (setq compilation-scroll-output 'first-error)
+
+  (defun unique-shx ()
+    (interactive)
+    (call-interactively 'shx)
+    (rename-uniquely))
+
+  (defun change-font-size (new-size)
+    "Change the font size to the given value"
+    (interactive "nNew font size: ")
+    (set-face-attribute 'default nil :height (* 10 new-size))))
 
 (use-package treesit-auto
   :straight (treesit-auto :type git :host github :repo "renzmann/treesit-auto")
@@ -200,10 +213,10 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   :init
   (vertico-mode))
 
-(use-package orderless
-  :config
-  (setq completion-styles '(orderless basic)
-        completion-category-overrides '((file (styles basic partial-completion)))))
+;(use-package orderless
+;  :config
+;  (setq completion-styles '(orderless basic)
+;        completion-category-overrides '((file (styles basic partial-completion)))))
 
 (use-package marginalia
   :init
@@ -223,6 +236,9 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   :straight (corfu :files ("corfu.el" "extensions/corfu-popupinfo.el"))
   :init
   (setq corfu-auto t)
+  (setq corfu-auto-delay 0)
+  (setq corfu-auto-prefix 0)
+  (setq completion-styles '(substring))
   (global-corfu-mode)
   (corfu-popupinfo-mode 1))
 
@@ -279,6 +295,8 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
                         (xterm-color-filter string) string)))
   (advice-add 'compilation-filter :around #'my/advice-compilation-filter))
 
+(use-package shx)
+
 
 (use-package python-black)
 
@@ -321,6 +339,15 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
 
 (use-package poetry)
 
+(use-package eglot-x
+  :straight (eglot-x :type git :host github :repo "nemethf/eglot-x")
+  :after (eglot)
+  :config
+  (eglot-x-setup))
+
+
+;;; LANGUAGE MODES
+
 (use-package web-mode
   :config
   (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
@@ -331,8 +358,6 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode)))
-
-;;; LANGUAGE MODES
 
 (use-package flex
   :straight (flex :type git :host github :repo "manateelazycat/flex")
@@ -356,6 +381,14 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   (add-to-list 'auto-mode-alist '("\\CMakeLists\\.txt\\'" . cmake-mode)))
 
 (use-package groovy-mode)
+
+(use-package rust-mode
+  :config
+  (add-hook 'rust-mode-hook
+          (lambda () (setq indent-tabs-mode nil)))
+  (add-hook 'rust-mode-hook 'eglot-ensure))
+
+(use-package wgsl-mode)
 
 
 (custom-set-variables

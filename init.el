@@ -374,6 +374,9 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   :config
   (eglot-x-setup))
 
+(use-package envrc
+  :config
+  (envrc-global-mode))
 
 ;;; LANGUAGE MODES
 

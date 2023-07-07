@@ -104,6 +104,11 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
   (setq mode-line-position (list "(%l,%c)"))
 
   (electric-pair-mode 1)
+
+  (defun unique-shx ()
+    (interactive)
+    (call-interactively 'shx)
+    (rename-uniquely))
   
   
   (general-define-key
@@ -121,6 +126,7 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
                                           "M-j" '(evil-window-down :which-key "Switch window down")
                                           "M-k" '(evil-window-up :which-key "Switch window up")
                                           "M-l" '(evil-window-right :which-key "Switch window right"))))
+
 
 
   (general-define-key
@@ -152,6 +158,9 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
     "c" 'recompile)
   (my-general-global-menu! "find" "f"
     "r" 'xref-find-references)
+
+  (my-general-global-menu! "spawn" "s"
+    "s" '(unique-shx :which-key "Spawn new shx"))
   
   (defun find-first-non-ascii-char ()
     "Find the first non-ascii character from point onwards."
@@ -173,10 +182,6 @@ Create prefix map: my-general-global-NAME. Prefix bindings in BODY with INFIX-KE
 
   (setq compilation-scroll-output 'first-error)
 
-  (defun unique-shx ()
-    (interactive)
-    (call-interactively 'shx)
-    (rename-uniquely))
 
   (defun change-font-size (new-size)
     "Change the font size to the given value"
